@@ -1,0 +1,61 @@
+{
+	"info": {
+		"_postman_id": "f38be71c-d3bc-429d-b349-f5b89557ba29",
+		"name": "Sistem Manajemen Armada",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "LOKASI TERAKHIR",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:9999/vehicles/B1234XYZ/location",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9999",
+					"path": [
+						"vehicles",
+						"B1234XYZ",
+						"location"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "RIWAYAT LOKASI",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:9999/vehicles/B1234XYZ/history?start=1757505058&end=1757505062",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9999",
+					"path": [
+						"vehicles",
+						"B1234XYZ",
+						"history"
+					],
+					"query": [
+						{
+							"key": "start",
+							"value": "1757505058"
+						},
+						{
+							"key": "end",
+							"value": "1757505062"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

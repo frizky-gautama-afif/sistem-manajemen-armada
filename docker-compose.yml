@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: sistem_manajemen_armada_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+
+  mqtt-broker:
+    image: eclipse-mosquitto:2.0
+    container_name: mosquitto_broker
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    restart: always
+
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: rabbitmq_broker
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: always
+
+  backend:
+    build:
+      context: .
+      target: backend
+    container_name: go_backend
+    environment:
+      DATABASE_URL: "host=db port=5432 user=user password=password dbname=sistem_manajemen_armada_db sslmode=disable"
+      MQTT_BROKER_URL: "tcp://mqtt-broker:1883"
+      RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672/"
+    ports:
+      - "9999:9999"
+    depends_on:
+      - db
+      - mqtt-broker
+      - rabbitmq
+    command: sh wait-for-it.sh rabbitmq 5672 ./sistem-manajemen-armada-api
+    volumes:
+      - ./wait-for-it.sh:/app/wait-for-it.sh
+
+  rabbitmq-worker:
+    build:
+      context: .
+      target: worker
+    container_name: go_rabbitmq_worker
+    environment:
+      RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672/"
+    depends_on:
+      - rabbitmq
+    command: sh wait-for-it.sh rabbitmq 5672 ./sistem-manajemen-armada-worker 
+    volumes:
+      - ./wait-for-it.sh:/app/wait-for-it.sh 
+
+  mqtt-publisher:
+    build:
+      context: .
+      target: publisher
+    container_name: go_mqtt_publisher
+    environment:
+      MQTT_BROKER_URL: "tcp://mqtt-broker:1883"
+    depends_on:
+      - mqtt-broker
+    restart: always
+
+volumes:
+  postgres_data:
